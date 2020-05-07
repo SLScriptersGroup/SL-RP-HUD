@@ -14,9 +14,9 @@ integer xp_needed;
 integer health;
 integer attack;
 integer defense;
-integer boost_attack; /|/Not implemented
-integer boost_defense; /|/Not implemented
-integer attackable; /|/Not fully implemented
+integer boost_attack; //Not implemented
+integer boost_defense; //Not implemented
+integer attackable; //Not fully implemented
 vector hover_color;
 integer is_ooc;
 integer is_afk;
@@ -159,7 +159,7 @@ default {
                  ],
                  dialog_chan);
       } else {
-        /|/Re-check versioning (crashes were interfering with checking, invalidating)
+        //Re-check versioning (crashes were interfering with checking, invalidating)
         llResetScript();
       }
     }
@@ -239,7 +239,7 @@ default {
         llRegionSayTo(owner, meter_chan, "AFK Off");
         setTitle();
       } else if (message == "Speaker") {
-        /|/llRegionSayTo(owner, meter_chan, "Char Voice");
+        //llRegionSayTo(owner, meter_chan, "Char Voice");
         llRegionSayTo(owner, meter_chan, "Voice Chan17");
       } else if (message == "Pay") {
         scanning_for_payees = TRUE;
@@ -379,7 +379,7 @@ default {
                                           ],
                                           params);
         } else if (message == "Attack Reject") {
-          llSay(0, "The request to attack secondlife:/|/|/app/agent/" + llList2String(nearby_players, attack_person_idx) + "/about was rejected.");
+          llSay(0, "The request to attack secondlife:///app/agent/" + llList2String(nearby_players, attack_person_idx) + "/about was rejected.");
         } else {
           list changes = llParseStringKeepNulls(message, [","], []);
           string action = llList2String(changes, 0);
@@ -409,7 +409,7 @@ default {
             dialog_listener = llListen(dialog_chan, "", owner, "");
             llSetTimerEvent(60);
             requesting_attacker = (key)llList2String(changes, 1);
-            llDialog(owner, "\nIncoming Attack\n \nsecondlife:/|/|/app/agent/" + llList2String(changes, 1) + "/about has requested a " + llList2String(changes, 2) + " attack.", ["Accept RP", "Not RP"], dialog_chan);
+            llDialog(owner, "\nIncoming Attack\n \nsecondlife:///app/agent/" + llList2String(changes, 1) + "/about has requested a " + llList2String(changes, 2) + " attack.", ["Accept RP", "Not RP"], dialog_chan);
           }
         }
       }
