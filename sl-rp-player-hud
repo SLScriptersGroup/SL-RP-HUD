@@ -1,4 +1,6 @@
 #include "config.lsl"
+string default_texture = "";
+
 string allowed_region = ALLOWED_REGION;
 list creators = [CREATORS];
 string hash_seed = HASH_SEED;
@@ -42,7 +44,7 @@ setTitle() {
   float alpha = 1;
   vector col = hover_color;
   if (is_current_version) {
-    llSetLinkTexture(4, "c424b442-7bdb-0c95-1364-f4ebabc5dd2d", 1);
+    llSetLinkTexture(4, default_texture, 1);
     hover_text = "\nM$" + (string)currency_banked
                + "\nLevel: " + (string)level + " XP: " + (string)experience + "/" + (string)xp_needed
                + "\nHealth: " + (string)health + "/10"
@@ -127,7 +129,7 @@ default {
       llSetText("", <1,1,1>, 1);
       init();
     } else {
-      llOwnerSay("You are not in " + allowed_region + ". This meter can only be used in " + allowed_region + ".");
+      llOwnerSay("You are not in " + allowed_region + ". This HUD can only be used in " + allowed_region + ".");
       llRequestPermissions(owner, PERMISSION_ATTACH);
     }
   }
@@ -147,7 +149,7 @@ default {
           afk_btn = "AFK Off";
         }
         llDialog(owner,
-                 "\n" + allowed_region + " Meter Menu\n \nM$" + (string)currency_banked + "\n \n",
+                 "\n" + allowed_region + " HUD Menu\n \nM$" + (string)currency_banked + "\n \n",
                  [
                    "Pay",
                    "Change",
@@ -239,7 +241,6 @@ default {
         llRegionSayTo(owner, meter_chan, "AFK Off");
         setTitle();
       } else if (message == "Speaker") {
-        //llRegionSayTo(owner, meter_chan, "Char Voice");
         llRegionSayTo(owner, meter_chan, "Voice Chan17");
       } else if (message == "Pay") {
         scanning_for_payees = TRUE;
@@ -471,7 +472,7 @@ default {
   changed(integer change) {
     if (change & CHANGED_REGION) {
       if (llGetRegionName() != allowed_region) {
-        llOwnerSay("You are not in " + allowed_region + ". This meter can only be used in " + allowed_region + ".");
+        llOwnerSay("You are not in " + allowed_region + ". This HUD can only be used in " + allowed_region + ".");
         llRequestPermissions(owner, PERMISSION_ATTACH);
       }
     }
