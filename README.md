@@ -49,7 +49,7 @@ Change `default_texture` to a UUID or texture in the inventory of the object whi
 
 No other configuration is necessary.
 
-- [ ] Issue: M$ is set as the label for currency. Needs to be put into [config.lsl](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/config.lsl). If you need to change this before @SylasSeabrook gets to it, edit lines 48 and 152.
+- [ ] Issue: M$ is set as the label for currency. Needs to be put into [config.lsl](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/config.lsl). If you need to change this before [@SylasSeabrook](https://github.com/SylasSeabrook) gets to it, edit lines 48 and 152.
 
 ### Player Titler
 
