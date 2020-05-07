@@ -9,8 +9,8 @@ integer min_level = 1;
 integer cooldown_seconds = 60;
 float cooldown_seconds_variation_percent = .5;
 
-string success_msg = "After toiling and grinding, ITEM_NAME is uncovered."; /|/ITEM_NAME for the item received
-string damage_msg = "After toiling and grinding, ITEM_NAME is uncovered. Something went wrong and you got hurt!"; /|/ITEM_NAME for the item received
+string success_msg = "After toiling and grinding, ITEM_NAME is uncovered."; //ITEM_NAME for the item received
+string damage_msg = "After toiling and grinding, ITEM_NAME is uncovered. Something went wrong and you got hurt!"; //ITEM_NAME for the item received
 
 integer health_damage_probability_percent = 75;
 integer health_damage_amount = 1;
