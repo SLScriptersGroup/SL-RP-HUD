@@ -61,7 +61,7 @@ default {
           return;
       }
 
-      /|/These 2 lines modify the object used in Helix to animate
+      //These 2 lines modify the object used in Helix to animate
       llSetLinkTexture(3, "4e429013-d6bc-a248-ce55-91eeef7ce5c0", 0);
       llSetLinkTextureAnim(3, ANIM_ON | SMOOTH | ROTATE | LOOP, 0,1,1,0, TWO_PI, TWO_PI);
 
@@ -172,11 +172,11 @@ default {
         }
         for (i=0;i<num;i++) {
           if (llRound(llFrand(100)) > success_rate) {
-            /|/Did not succeed
+            //Did not succeed
             integer c_fail_rate = crit_fail_rate - (level - min_level) * crit_fail_rate_damping_by_level_above_min_level;
             if (c_fail_rate > 0) {
               if (llRound(llFrand(100)) <= c_fail_rate) {
-                /|/Critical failure -- deliver bad product
+                //Critical failure -- deliver bad product
                 llMessageLinked(LINK_ALL_OTHERS, 0, produced_item, toucher);
               } else {
                 integer index;
@@ -217,7 +217,7 @@ default {
     }
   }
   timer() {
-    /|/These 2 lines modify the object used in Helix to stop animating
+    //These 2 lines modify the object used in Helix to stop animating
     llSetLinkTexture(3, "61f9450d-49e9-043d-e1b0-10733b922c6a", 0);
     llSetLinkTextureAnim(3, ANIM_ON | SMOOTH | ROTATE | LOOP, 0,1,1,0, TWO_PI, 0);
 
