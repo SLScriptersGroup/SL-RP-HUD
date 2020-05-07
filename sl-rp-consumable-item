@@ -1,0 +1,117 @@
+//start_unprocessed_text
+/*#include "config.lsl"
+/|/Note that this specifically does NOT check for owner. People can steal other people's stuff (so smart to add instead of rezz). This allows sharing as well.
+string used_message = "I'm all used up!";
+string used_texture_uuid = "69c2c03f-a56b-b91e-91a6-2b37cb6c849b";
+string experience = "0";
+string health = "0";
+string attack = "0";
+string defense = "0";
+string boost_attack = "0";
+string boost_defense = "0";
+string currency_banked = "0";
+integer meter_chan = METER_CHAN;
+integer meter_listener;
+default {
+    touch_start(integer total_number) {
+      if (llVecDist(llGetPos(), llDetectedPos(0)) > 5) {
+        llRegionSayTo(llDetectedKey(0), 0, "Must be closer to use this.");
+        return;
+      }
+      llRegionSayTo(llDetectedKey(0),
+                    meter_chan,
+                      "STAT"
+                    + "," + experience
+                    + "," + health
+                    + "," + attack
+                    + "," + defense
+                    + "," + boost_attack
+                    + "," + boost_defense
+                    + "," + currency_banked
+                   );
+      llSetTimerEvent(15);
+      meter_listener = llListen(meter_chan, "", NULL_KEY, "");
+    }
+
+    listen(integer channel, string name, key id, string message) {
+      if (channel == meter_chan) {
+        if (message == "1") {
+          llSetTimerEvent(0);
+          llListenRemove(meter_listener);
+          llSay(0, used_message);
+          llSetLinkTexture(LINK_SET, used_texture_uuid, ALL_SIDES);
+          llRemoveInventory(llGetScriptName());
+          if (llGetAttached() == 0) {
+            llDie();
+          }
+        }
+      }
+    }
+    timer() {
+      llSetTimerEvent(0);
+      llListenRemove(meter_listener);
+      llSay(0, "Your HUD did not respond in time.");
+    }
+}
+*/
+//end_unprocessed_text
+//nfo_preprocessor_version 0
+//program_version Firestorm-Releasex64 6.3.2.58052 - Cypher Hijinks
+//last_compiled 05/06/2020 17:13:56
+//mono
+
+
+
+//#line 3 "C:\\Program Files\\Firestorm-releasex64\\sl-rp-consumable-item"
+string used_message = "I'm all used up!";
+string used_texture_uuid = "69c2c03f-a56b-b91e-91a6-2b37cb6c849b";
+string experience = "0";
+string health = "0";
+string attack = "0";
+string defense = "0";
+string boost_attack = "0";
+string boost_defense = "0";
+string currency_banked = "0";
+integer meter_chan = 0;
+integer meter_listener;
+default {
+    touch_start(integer total_number) {
+      if (llVecDist(llGetPos(), llDetectedPos(0)) > 5) {
+        llRegionSayTo(llDetectedKey(0), 0, "Must be closer to use this.");
+        return;
+      }
+      llRegionSayTo(llDetectedKey(0),
+                    meter_chan,
+                      "STAT"
+                    + "," + experience
+                    + "," + health
+                    + "," + attack
+                    + "," + defense
+                    + "," + boost_attack
+                    + "," + boost_defense
+                    + "," + currency_banked
+                   );
+      llSetTimerEvent(15);
+      meter_listener = llListen(meter_chan, "", NULL_KEY, "");
+    }
+
+    listen(integer channel, string name, key id, string message) {
+      if (channel == meter_chan) {
+        if (message == "1") {
+          llSetTimerEvent(0);
+          llListenRemove(meter_listener);
+          llSay(0, used_message);
+          llSetLinkTexture(LINK_SET, used_texture_uuid, ALL_SIDES);
+          llRemoveInventory(llGetScriptName());
+          if (llGetAttached() == 0) {
+            llDie();
+          }
+        }
+      }
+    }
+    timer() {
+      llSetTimerEvent(0);
+      llListenRemove(meter_listener);
+      llSay(0, "Your HUD did not respond in time.");
+    }
+}
