@@ -67,7 +67,7 @@ default {
         defense = llList2Integer(fields, 6);
         level = llList2Integer(fields, 14);
         xp_needed = llList2Integer(fields, 15);
-        string dialog_message  = "\nsecondlife:/|/|/app/agent/" + avi_uuid + "/about Stats\n "
+        string dialog_message  = "\nsecondlife:///app/agent/" + avi_uuid + "/about Stats\n "
                                + "\nCharacter: " + character
                                + "\nCurrency: " + (string)currency_banked
                                + "\nLevel: " + (string)level
@@ -107,8 +107,8 @@ default {
         stat_changing = message;
         llSetTimerEvent(60);
         dialog_listener = llListen(dialog_chan, "", owner, "");
-        string dialog_message  = "\nsecondlife:/|/|/app/agent/" + avi_uuid + "/about Stats\n \n";
-        llTextBox(owner, "\nsecondlife:/|/|/app/agent/" + avi_uuid + "/about Stats\n \nEnter the amount to change the " + message + ".", dialog_chan);
+        string dialog_message  = "\nsecondlife:///app/agent/" + avi_uuid + "/about Stats\n \n";
+        llTextBox(owner, "\nsecondlife:///app/agent/" + avi_uuid + "/about Stats\n \nEnter the amount to change the " + message + ".", dialog_chan);
       } else {
         string fields = "";
         stat_changing = llToLower(stat_changing);
