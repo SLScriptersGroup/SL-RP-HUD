@@ -45,7 +45,7 @@ setTitle() {
   vector col = hover_color;
   if (is_current_version) {
     llSetLinkTexture(4, default_texture, 1);
-    hover_text = "\nM$" + (string)currency_banked
+    hover_text = "\n" CURRENCY_PREFIX + (string)currency_banked + CURRENCY_SUFFIX
                + "\nLevel: " + (string)level + " XP: " + (string)experience + "/" + (string)xp_needed
                + "\nHealth: " + (string)health + "/10"
                + "\nAttack: " + (string)attack
@@ -149,7 +149,7 @@ default {
           afk_btn = "AFK Off";
         }
         llDialog(owner,
-                 "\n" + allowed_region + " HUD Menu\n \nM$" + (string)currency_banked + "\n \n",
+                 "\n" + allowed_region + " HUD Menu\n \n" + CURRENCY_PREFIX + (string)currency_banked + CURRENCY_SUFFIX + "\n \n",
                  [
                    "Pay",
                    "Change",
