@@ -6,5 +6,5 @@
 #define CREATORS "UUID", "UUID"
 #define TITLER_NAME "Titler"
 #define API_URL "https://example.com/sl-rp-hud/"
-#define CURRENCY_PREFIX = "M$"
-#define CURRENCY_SUFFIX = ""
+#define CURRENCY_PREFIX "M$"
+#define CURRENCY_SUFFIX ""
