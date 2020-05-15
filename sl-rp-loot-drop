@@ -21,8 +21,8 @@ string hash_seed = HASH_SEED;
 integer meter_chan = METER_CHAN;
 integer meter_listener;
 list creators = [CREATORS];
-key toucher;
-key http_request_id;
+key toucher = NULL_KEY;
+key http_request_id = NULL_KEY;
 integer sum;
 integer num_droppables;
 string received_item;
@@ -37,20 +37,30 @@ default {
     }
   }
   touch_start(integer total_number) {
+    if (toucher != NULL_KEY) {
+      llRegionSayTo(llDetectedKey(0), 0, "Someone is currently using this drop. Please try back later.");
+      return;
+    }
     toucher = llDetectedKey(0);
-    if (llVecDist(llGetPos(), llDetectedPos(0)) <= max_distance_from_object) {
+    if (http_request_id == NULL_KEY && llVecDist(llGetPos(), llDetectedPos(0)) <= max_distance_from_object) {
       received_item = "";
       llSetTimerEvent(15);
       meter_listener = llListen(meter_chan, "", NULL_KEY, "");
       llRegionSayTo(toucher, meter_chan, "Ping");
     } else {
       llRegionSayTo(toucher, 0, "Not close enough to touch this.");
+      toucher = NULL_KEY;
     }
   }
   http_response(key request_id, integer status, list metadata, string body) {
     if (request_id == http_request_id) {
       if (llSubStringIndex(body, "ERR,") == 0) {
-        llSay(0, "Error: " + llGetSubString(body, 4, llStringLength(body) - 1));
+        if (toucher == NULL_KEY) {
+          llSay(0, "Error: " + llGetSubString(body, 4, llStringLength(body) - 1));
+        } else {
+          llRegionSayTo(toucher, 0, "Error: " + llGetSubString(body, 4, llStringLength(body) - 1));
+          toucher = NULL_KEY;llSetTimerEvent(0);
+        }
       } else if (llSubStringIndex(body, "STAT,") == 0) {
         list fields = llCSV2List(llGetSubString(body, 5, llStringLength(body) - 1));
         integer experience = llList2Integer(fields, 3);
@@ -61,6 +71,7 @@ default {
           for (i=0;i<num_droppables;i+=2) {
             running += llList2Integer(droppables, i+1);
             if (running >= rand) {
+              llSetTimerEvent(0);
               received_item = llList2String(droppables, i);
               string msg = success_msg;
 
@@ -89,8 +100,8 @@ default {
               } else {
                 llGiveInventory(toucher, received_item);
                 string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                              + "&action=c&is_crit_fail=No&item=" + received_item
-                              + "&source=" + machine_name
+                              + "&action=c&is_crit_fail=No&item=" + llEscapeURL(received_item)
+                              + "&source=" + llEscapeURL(machine_name)
                               + "&cooldown=" + (string)((integer)((1 + llFrand(2 * cooldown_seconds_variation_percent) - cooldown_seconds_variation_percent) * cooldown_seconds));
                 http_request_id = llHTTPRequest(API_URL,
                                                 [
@@ -111,24 +122,32 @@ default {
           }
           llRegionSayTo(toucher, 0, "Did not select an object. This should not have happened.");
         } else {
-          llSay(0, "You do not have the minimum required level (" + (string)min_level + ") to use this device.");
+          llSay(0, "The minimum required level to use this device is " + (string)min_level + ".");
         }
       } else if (body != "SILENT") {
-        llSay(0, "Unexpected response: " + body);
+        if (toucher == NULL_KEY) {
+          llSay(0, "Unexpected response: " + body);
+        } else {
+          llRegionSayTo(toucher, 0, "Unexpected response: " + body);
+          toucher = NULL_KEY;llSetTimerEvent(0);
+        }
+      } else {
+        toucher = NULL_KEY;llSetTimerEvent(0);
       }
     } else {
       llRegionSayTo(toucher, meter_chan, "1");
     }
+    http_request_id = NULL_KEY;
   }
   listen(integer channel, string name, key id, string message) {
     if (channel == meter_chan) {
       if (message == "1") {
         llGiveInventory(toucher, received_item);
-        llSetTimerEvent(0);
+        llSetTimerEvent(15);
         llListenRemove(meter_listener);
         string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                      + "&action=c&is_crit_fail=No&item=" + received_item
-                      + "&source=" + machine_name
+                      + "&action=c&is_crit_fail=No&item=" + llEscapeURL(received_item)
+                      + "&source=" + llEscapeURL(machine_name)
                       + "&cooldown=" + (string)((integer)((1 + llFrand(2 * cooldown_seconds_variation_percent) - cooldown_seconds_variation_percent) * cooldown_seconds));
 
         http_request_id = llHTTPRequest(API_URL,
@@ -138,10 +157,10 @@ default {
                                         ],
                                         params);
       } else if (llSubStringIndex(message, "Pong,") == 0) {
-        llSetTimerEvent(0);
+        llSetTimerEvent(15);
         if ((key)llGetSubString(message, 5, llStringLength(message) -1) == toucher) {
           string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                        + "&action=r&is_drop=1&source=" + machine_name;
+                        + "&action=r&is_drop=1&source=" + llEscapeURL(machine_name);
 
           http_request_id = llHTTPRequest(API_URL,
                                           [
@@ -156,6 +175,14 @@ default {
   timer() {
     llSetTimerEvent(0);
     llListenRemove(meter_listener);
-    llSay(0, "Your HUD did not respond in time. You may have to detach and reattach.");
+    if (toucher != NULL_KEY) {
+      if (http_request_id != NULL_KEY) {
+        llRegionSayTo(toucher, 0, "Your HUD did not respond in time. You may have to detach and reattach.");
+        http_request_id = NULL_KEY;
+      } else {
+        llSay(0, "A HUD did not respond in time. It may need to be detached and reattached.");
+      }
+      toucher = NULL_KEY;
+    }
   }
 }
