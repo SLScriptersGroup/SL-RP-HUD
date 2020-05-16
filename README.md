@@ -30,7 +30,7 @@ Be sure you have configured [config.lsl](https://github.com/SLScriptersGroup/SL-
 
 ## Configure the database & server-side script
 
-- [ ] _Documenting this and providing the code will come soon._
+- [ ] _Documenting this will come soon._
 
 ## The Admin HUD
 
@@ -48,8 +48,6 @@ Stats are displayed as floating text. Place the script in any object set as a HU
 Change `default_texture` to a UUID or texture in the inventory of the object which represents the default texture to display when the HUD is current. When out of date, this texture will be switched to white. It has been observed that in some cases a false-positive happens, changing the HUD to white. End users can click the HUD and it will re-validate the version.
 
 No other configuration is necessary.
-
-- [ ] Issue: M$ is set as the label for currency. Needs to be put into [config.lsl](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/config.lsl). If you need to change this before [@SylasSeabrook](https://github.com/SylasSeabrook) gets to it, edit lines 48 and 152.
 
 ### Player Titler
 
@@ -132,8 +130,6 @@ The root object of the crafting machine must contain the [sl-rp-crafting-machine
 * `success_rate` -- The percentage as a whole number where the desired item is given to the player.
 * `crit_fail_rate` -- When the success rate does not indicate this player to get the desired item, they will get nothing, lose all of their items, and receive the `failure_message` message. However, from that group, some will get a bad item. The `crit_fail_rate` is the percentage as a whole number of those who do not fall in the success rate who will receive the critical failure object (the bad one).
 * `crit_fail_rate_damping_by_level_above_min_level` For each level above `min_level`, this number is subtracted from `crit_fail_rate` (never going below zero). This means that higher level players will have the same chance of success or fail, but less of a chance of getting a bad item.
-
-- [ ] There are currently a few lines which are used for the animation on the Helix City crafting machines, noted in the source code. Undoubtedly they won't be useful to anyone else.
 
 #### The Critical Failure Linked Prim (Bad object)
 
