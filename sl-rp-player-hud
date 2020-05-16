@@ -426,7 +426,7 @@ default {
       integer num_players = llGetListLength(nearby_players);
       if (num_players > 0) {
         integer i;
-        dialog_prompt = "\n *|* Select A Player To Pay *|*\n";
+        dialog_prompt = "\n ** Select A Player To Pay **\n";
         dialog_state = "pay";
         showDialogPage(1);
         return;
@@ -438,7 +438,7 @@ default {
       integer num_players = llGetListLength(nearby_players);
       if (num_players > 0) {
         integer i;
-        dialog_prompt = "\n *|* Select A Player To Attack *|*\n";
+        dialog_prompt = "\n ** Select A Player To Attack **\n";
         dialog_state = "attack";
         showDialogPage(1);
         return;
