@@ -14,7 +14,7 @@ Sylas
 
 The code has been built using the [Firestorm LSL Preprocessor directives](https://wiki.firestormviewer.org/fs_preprocessor). This way you can edit the [config.lsl](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/config.lsl) file to apply the necessary global settings.
 
-NOTE: These are _not_the only settings you need to adjust. Many are per-file, so be sure to look at the source code to edit custom messages and other settings as described below.
+NOTE: These are _not_ the only settings you need to adjust. Many are per-file, so be sure to look at the source code to edit custom messages and other settings as described below.
 
 # How to Configure Your RP HUD System
 
