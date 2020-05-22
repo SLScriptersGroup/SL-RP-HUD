@@ -51,17 +51,17 @@ class Player {
     try {
       $updates = array();
       if (isset($update_fields['name'])) {
-        $this->name_character = $update_fields['name'];
+        $this->_setter('name_character', $update_fields['name']);
       }
       if (isset($update_fields['title'])) {
-        $this->title = $update_fields['title'];
+        $this->_setter('title', $update_fields['title']);
       }
       if (isset($update_fields['hover_color']) && strlen($update_fields['hover_color']) > 0) {
-        $this->hover_color = $update_fields['hover_color'];
+        $this->_setter('hover_color', $update_fields['hover_color']);
       }
       if (isset($update_fields['health']) && strlen($update_fields['health']) > 0) {
         $updates['health'] = $update_fields['health'];
-        $this->health += $update_fields['health'];
+        $this->_setter('health', $this->_health + $update_fields['health']);
       }
       if (   isset($update_fields['currency_banked'])
           && (int)$update_fields['currency_banked'] < 0
@@ -104,7 +104,7 @@ class Player {
       }
       foreach (self::INTEGER_CHARACTERISTICS as $field) {
         if (isset($update_fields[$field])) {
-          $this->$field += (int)$update_fields[$field];
+          $this->_setter($field, $this->{'_' . $field} + (int)$update_fields[$field]);
           $updates[$field] = (INT)$update_fields[$field];
         }
       }
@@ -164,7 +164,7 @@ class Player {
     try {
       $level_info = $this->_experienceToLevel($this->_experience);
       if ($this->_day_last_worked < date('Y-m-d') || strlen($this->_day_last_worked) == 0) {
-        $this->player_paid = round($level_info['pay'] * (1 + $this->_currency_bonus), 0);
+        $this->_setter('player_paid', round($level_info['pay'] * (1 + $this->_currency_bonus), 0));
         $sql = "";
         if (($this->_total_days_worked + 1)%self::CHECK_IN_NUM_DAYS_FOR_BONUS == 0) {
           $stmt = API::$DB->prepare("UPDATE player
@@ -178,10 +178,10 @@ class Player {
           $stmt->execute();
           $stmt->close();
 
-          $this->currency_banked += $this->_player_paid;
-          $this->experience += self::CHECK_IN_XP_BONUS;
+          $this->_setter('currency_banked', $this->_currency_banked + $this->_player_paid);
+          $this->_setter('experience', $this->_experience +  self::CHECK_IN_XP_BONUS);
           $level_info = $this->_experienceToLevel($this->_experience);
-          $this->lvl = $level_info['level'];
+          $this->_setter('lvl', $level_info['level']);
 
           $stmt = API::$DB->prepare("INSERT INTO player_log
                                              SET player_id=?,
@@ -239,7 +239,7 @@ class Player {
         if (   $_POST['stats'] != "Pick Winner"
             && ($attacker->health == 0 || $defender->health == 0)
            ) {
-          throw new \Exception('Everyone must have at least one unit of health to fight.');
+          throw new \Exception('Everyone must have at least one unit of health if losing to fight.');
         } else if ($attacker !== false && $defender !== false) {
           list ($winner, $loser) = $this->_placeBattle($attacker, $defender);
           if ($_POST['stats'] != "Pick Winner") {
@@ -254,6 +254,18 @@ class Player {
             $stmt->bind_param("iis", $lose_xp, $lose_health, $loser);
             $stmt->execute();
             
+            $stmt->close();
+
+            $stmt = API::$DB->prepare("INSERT INTO player_log SET player_id=?, instant=NOW(), source_name='Attack Win', experience=" . self::FIGHT_WINNER_EXPERIENCE);
+            $player_id = $attacker->uuid_sl == $winner?$attacker->player_id:$defender->player_id;
+            $stmt->bind_param("i", $player_id);
+            $stmt->execute();
+            $stmt->close();
+
+            $stmt = API::$DB->prepare("INSERT INTO player_log SET player_id=?, instant=NOW(), source_name='Attack Lose', experience=" . self::FIGHT_LOSER_EXPERIENCE . ",health=" . self::FIGHT_LOSER_HEALTH);
+            $player_id = $attacker->uuid_sl == $winner?$defender->player_id:$attacker->player_id;
+            $stmt->bind_param("i", $player_id);
+            $stmt->execute();
             $stmt->close();
           }
           return 'ATTACK,secondlife:///app/agent/' . $winner . '/about won!,' . $defender->uuid_sl;
@@ -380,7 +392,7 @@ class Player {
   }
   public function Read() {
     try {
-      $this->uuid_sl = $_POST['uuid'];
+      $this->_setter('uuid_sl', $_POST['uuid']);
 
       $stmt = API::$DB->prepare("SELECT * FROM player WHERE uuid_sl=?");
       $stmt->bind_param("s", $_POST['uuid']);
@@ -436,6 +448,68 @@ class Player {
     }
   }
   public function __set($name, $val) {
+    $this->_setter($name, $val);
+  }
+  public function __toString() {
+    $level_info = $this->_experienceToLevel($this->_experience);
+    $response = 'STAT,'
+              . $this->_name_character . ','
+              . $this->_title . ','
+              . $this->_currency_banked . ','
+              . $level_info['xp'] . ','
+              . $this->_health . ','
+              . $this->_attack . ','
+              . $this->_defense . ','
+              . $this->_boost_attack . ','
+              . $this->_boost_defense . ','
+              . (int)(   strlen($this->_instant_last_defense) == 0
+                      || (strtotime($this->_instant_last_defense) + 60*60 > time())
+                    ) . ',' //Not implemented client side
+              . $this->_hover_color . ',';
+    if (isset($_POST['pass'])) {
+      $response .= $_POST['pass'];
+    }
+    $response .= ',' . $level_info['level']
+               . ',' . $level_info['xp_needed'];
+    if ((int)$this->_player_paid > 0) {
+      $response .= ',' . (int)$this->_player_paid;
+    }
+    return $response;
+  }
+  function _placeBattle($attacker, $defender) {
+    $offensive = ($attacker->health/10) * $attacker->attack;
+    $defensive = ($defender->health/10) * $defender->defense;
+    $max = ceil($offensive + $defensive);
+    $dice_roll = mt_rand(0, $max);
+    if ($dice_roll <= $offensive) {
+      return array($attacker->uuid_sl, $defender->uuid_sl);
+    } else {
+      return array($defender->uuid_sl, $attacker->uuid_sl);
+    }
+  }
+  private function _experienceToLevel($xp) {
+    include 'player-levels.php';
+    $result = array('level'=>1, 'xp'=>0, 'xp_needed'=>10, 'pay'=>60);
+    
+    $num_lvl = count($player_levels);
+    for ($i=$num_lvl - 1;$i>-1;$i--) {
+      if ($xp >= $player_levels[$i]['min_xp']) {
+        $result['level'] = $player_levels[$i]['lvl'];
+        $result['pay'] = $player_levels[$i]['pay'];
+        $result['xp'] = $xp - $player_levels[$i]['min_xp'];
+        if ($i < count($player_levels) - 1) {
+          $result['xp_needed'] = $player_levels[$i + 1]['min_xp'];
+        } else {
+          $result['xp_needed'] = 0;
+        }
+        return $result;
+      }
+    }
+    $result['xp'] = $xp;
+    $result['xp_needed'] = $player_levels[0]['min_xp'];
+    return $result;
+  }
+  private function _setter($name, $val) {
     if ($name == 'name') {
       $name = 'name_character';
     }
@@ -505,65 +579,6 @@ class Player {
       $val = str_replace(',', '', $val);
     }
     $this->{'_' . $name} = $val;
-  }
-  public function __toString() {
-    $level_info = $this->_experienceToLevel($this->_experience);
-    $response = 'STAT,'
-              . $this->_name_character . ','
-              . $this->_title . ','
-              . $this->_currency_banked . ','
-              . $this->_experience . ','
-              . $this->_health . ','
-              . $this->_attack . ','
-              . $this->_defense . ','
-              . $this->_boost_attack . ','
-              . $this->_boost_defense . ','
-              . (int)(   strlen($this->_instant_last_defense) == 0
-                      || (strtotime($this->_instant_last_defense) + 60*60 > time())
-                    ) . ',' //Not implemented client side
-              . $this->_hover_color . ',';
-    if (isset($_POST['pass'])) {
-      $response .= $_POST['pass'];
-    }
-    $response .= ',' . $this->_lvl
-               . ',' . $level_info['xp_needed'];
-    if ((int)$this->_player_paid > 0) {
-      $response .= ',' . (int)$this->_player_paid;
-    }
-    return $response;
-  }
-  function _placeBattle($attacker, $defender) {
-    $offensive = ($attacker->health/10) * $attacker->attack;
-    $defensive = ($defender->health/10) * $defender->defense;
-    $max = ceil($offensive + $defensive);
-    $dice_roll = mt_rand(0, $max);
-    if ($dice_roll <= $offensive) {
-      return array($attacker->uuid_sl, $defender->uuid_sl);
-    } else {
-      return array($defender->uuid_sl, $attacker->uuid_sl);
-    }
-  }
-  private function _experienceToLevel($xp) {
-    include 'player-levels.php';
-    $result = array('level'=>1, 'xp'=>0, 'xp_needed'=>10, 'pay'=>60);
-    
-    $num_lvl = count($player_levels);
-    for ($i=$num_lvl - 1;$i>-1;$i--) {
-      if ($xp >= $player_levels[$i]['min_xp']) {
-        $result['level'] = $player_levels[$i]['lvl'];
-        $result['pay'] = $player_levels[$i]['pay'];
-        $result['xp'] = $xp - $player_levels[$i]['min_xp'];
-        if ($i < count($player_levels) - 1) {
-          $result['xp_needed'] = $player_levels[$i + 1]['min_xp'];
-        } else {
-          $result['xp_needed'] = 0;
-        }
-        return $result;
-      }
-    }
-    $result['xp'] = $xp;
-    $result['xp_needed'] = $player_levels[0]['min_xp'];
-    return $result;
   }
 }
 ?>
