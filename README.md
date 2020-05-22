@@ -30,7 +30,13 @@ Be sure you have configured [config.lsl](https://github.com/SLScriptersGroup/SL-
 
 ## Configure the database & server-side script
 
-- [ ] _Documenting this will come soon._
+1. Create a MySQL database with tables for the HUD using [mysql-db-creation.sql](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/server-side/mysql-db-creation.sql).
+1. Assign a database user.
+1.  Update the connection details in [api.php](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/server-side/api.php).
+1. Populate the `$hash_seed` variable with a random string to be used to help secure your system. It is also the value in quotes in the [config.lsl](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/config.lsl) file -- they **must** match.
+1. Review the class constants at the top of [Player.php](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/server-side/classes/Player.php) and update them to reflect how you want your system to operate.
+
+Once the steps above have been completed, upload the php files to your server.
 
 ## The Admin HUD
 
