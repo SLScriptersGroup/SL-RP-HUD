@@ -73,7 +73,8 @@ class Player {
           $stmt = API::$DB->prepare("UPDATE player
                                         SET currency_banked = currency_banked + ?
                                       WHERE uuid_sl=?");
-          $stmt->bind_param("is", abs($update_fields['currency_banked']), $update_fields['pass']);
+          $amt = abs($update_fields['currency_banked']);
+          $stmt->bind_param("is", $amt, $update_fields['pass']);
           $stmt->execute();
           if ($stmt->affected_rows <= 0) {
             throw new \Exception('Payment cancelled. Recipient not in database.');
@@ -94,7 +95,8 @@ class Player {
                                                    instant=NOW(),
                                                    source_name='Stat Change',
                                                    currency_banked=?");
-              $stmt->bind_param("ii", $other_player->player_id, abs($update_fields['currency_banked']));
+              $amt = abs($update_fields['currency_banked']);
+              $stmt->bind_param("ii", $other_player->player_id, $amt);
               $stmt->execute();
               $stmt->close();
           }
