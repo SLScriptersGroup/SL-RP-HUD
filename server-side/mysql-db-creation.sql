@@ -17,7 +17,7 @@ CREATE TABLE `player` (
   `instant_last_defense` datetime DEFAULT NULL,
   `instant_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `instant_last_stat_auto_update` datetime DEFAULT NULL,
-  `hover_color` char(32) DEFAULT '<1,1,1>',
+  `hover_color` char(32) DEFAULT '1,1,1',
   `lvl` tinyint(3) unsigned DEFAULT '1',
   `day_last_worked` date DEFAULT NULL,
   `total_days_worked` int(10) unsigned DEFAULT '0',
