@@ -318,42 +318,69 @@ class Player {
         throw new \Exception('Player with UUID Key of ' . preg_replace('/[^a-z0-9\-]/i', '', $_POST['uuid']) . ' not found.');
       }
     } else if (isset($_POST['item'])) {
-      $stmt = API::$DB->prepare("SELECT * FROM player WHERE uuid_sl=?");
-      $stmt->bind_param("s", $_POST['uuid']);
+      $this->Read();
+      if ($this->_lvl >= (int)$_POST['min_level']) {
+        $stmt = API::$DB->prepare("SELECT COUNT(*) AS qty
+                                     FROM player_to_item
+                                    WHERE player_id=?
+                                      AND instant_created > '" . date('Y-m-d H:i:s', strtotime('-24 hours')) . "'");
+        $stmt->bind_param("i", $this->_player_id);
       $stmt->execute();
       $result = $stmt->get_result();
-      if ($result->num_rows == 1) {
-        $player = $result->fetch_object();
+        if ($result->num_rows > 0) {
+          $player_to_item_count = $result->fetch_object();
+          if ($player_to_item_count->qty >= self::DROPS_PER_24_HOURS) {
+            throw new \Exception('(( 24 hour drop limit reached. Please try again later. ))');
+          }
+        }
         $stmt->close();
+
+        $stmt = API::$DB->prepare("SELECT instant_cooldown_expires
+                                     FROM player_to_item
+                                    WHERE player_id=?
+                                      AND source=?
+                                  ORDER BY player_to_item_id DESC LIMIT 1");
+        $stmt->bind_param("is", $this->_player_id, $_POST['source']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+          $player_to_item_count = $result->fetch_object();
+        
+          if (   strlen($player_to_item_count->instant_cooldown_expires) > 0
+              && $player_to_item_count->instant_cooldown_expires > date('Y-m-d H:i:s')
+             ) {
+            throw new \Exception('(( This item is still on cooldown for you. Try again later. ))');
+          }
+        }
+        $stmt->close();
+
+        $cooldown = (isset($_POST['cooldown'])?"'" . date('Y-m-d H:i:s', strtotime('+' . abs((int)$_POST['cooldown']) . ' seconds')) . "'":'NULL');
 
         $stmt = API::$DB->prepare("INSERT INTO player_to_item
                                            SET player_id=?,
                                                instant_created=NOW(),
                                                source=?,
                                                is_crit_fail=?,
-                                               instant_cooldown_expires=?,
+                                               instant_cooldown_expires=" . $cooldown . ",
                                                item=?"
                  );
 
         $is_crit = ($_POST['is_crit_fail'] == 'Yes'?'Yes':'No');
-        $cooldown = (isset($_POST['cooldown'])?"'" . date('Y-m-d H:i:s', strtotime(((int)$_POST['cooldown'] >= 0?'+':'') . (int)$_POST['cooldown'] . ' seconds')) . "'":'NULL');
-        $stmt->bind_param("issss", $player->player_id,
+        $stmt->bind_param("isss", $this->_player_id,
                                    $_POST['source'],
                                    $is_crit,
-                                   $cooldown,
                                    $_POST['item']
                          );
         $stmt->execute();
         $stmt->close();
-        return 'SILENT';
-      } else {
-        throw new \Exception('Player with UUID Key of ' . preg_replace('/[^a-z0-9\-]/i', '', $_POST['uuid']) . ' not found.');
+        return 'GIVE,' . $_POST['item'];
       }
+      //Does not meet level, so trigger the check client-side
+      return (string)$this;
     } else if (   isset($_POST['user']) && strlen($_POST['user']) > 0
                && isset($_POST['name']) && strlen($_POST['name']) > 0
                && isset($_POST['title'])
               ) { //New user
-      
       $stmt = API::$DB->prepare("INSERT INTO player SET username_sl=?, uuid_sl=?, name_character=?, title=?, hover_color=?");
       $hover_color = '1,1,1';
 
@@ -409,42 +436,6 @@ class Player {
         throw new \Exception('Player with UUID Key of ' . $this->_uuid_sl . ' not found.');
       }
       $stmt->close();
-
-      if (isset($_POST['is_drop']) && $_POST['is_drop'] == 1) {
-        $num_drops = 0;
-        $stmt = API::$DB->prepare("SELECT COUNT(*) AS qty
-                                     FROM player_to_item
-                                    WHERE player_id=?
-                                      AND instant_created > '" . date('Y-m-d H:i:s', strtotime('-24 hours')) . "'");
-        $stmt->bind_param("i", $this->_player_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-          $player_to_item_count = $result->fetch_object();
-          if ($player_to_item_count->qty >= self::DROPS_PER_24_HOURS) {
-            throw new \Exception('(( 24 hour drop limit reached. Please try again later. ))');
-          }
-        }
-        $stmt->close();
-
-        $stmt = API::$DB->prepare("SELECT instant_cooldown_expires
-                                     FROM player_to_item
-                                    WHERE player_id=?
-                                      AND source=?");
-        $stmt->bind_param("is", $this->_player_id, $_POST['source']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-          $player_to_item_count = $result->fetch_object();
-    
-          if (   strlen($player_to_item_count->instant_cooldown_expires) > 0
-              && $player_to_item_count->instant_cooldown_expires > date('Y-m-d H:i:s')
-             ) {
-            throw new \Exception('(( The item fails to respond due to cooldown constraints. Try again later. ))');
-          }
-        }
-        $stmt->close();
-      }
     } catch (\mysqli_sql_exception $e) {
       throw new \Exception("Database error: " . $e->__toString());
     }
