@@ -3,7 +3,6 @@ string machine_name = "__ENTER_NAME_FOR_LOGGING__";
 //Strided list of the format "_ITEM_NAME_", (integer)relative_weight (See notes)
 list droppables = [
 ];
-string is_crit_fail="No";
 integer max_distance_from_object = 5;
 integer min_level = 1;
 
@@ -72,6 +71,36 @@ default {
         }
       } else if (llSubStringIndex(body, "GIVE,") == 0) {
         //Step 4 - Give item
+        string msg = success_msg;
+
+        string params = "STAT,";
+
+        float rand = llFrand(100);
+        if (rand < (float)xp_penalty_probability_percent) {
+          params += "-" + (string)xp_penalty_amount;
+          msg = damage_msg;
+        }
+        params += ",";
+
+        rand = llFrand(100);
+        if (rand < (float)health_damage_probability_percent) {
+          params += "-" + (string)health_damage_amount;
+          msg = damage_msg;
+        }
+
+        if (msg == damage_msg) {
+          llRegionSayTo(toucher,
+                        meter_chan,
+                        params + ",,,,,"
+                       );
+          llSetTimerEvent(15);
+          meter_listener = llListen(meter_chan, "", NULL_KEY, "");
+        }
+        integer index;
+        while ((index = llSubStringIndex(msg, "ITEM_NAME")) > -1) {
+          msg = llGetSubString(msg, 0, index - 1) + received_item + llGetSubString(msg, index + 9, llStringLength(msg) - 1);
+        }
+        llRegionSayTo(toucher, 0, msg);
         llGiveInventory(toucher, llGetSubString(body, 5, llStringLength(body) - 1));
         llRegionSayTo(toucher, meter_chan, "1");
         toucher = NULL_KEY;llSetTimerEvent(0);
@@ -104,7 +133,8 @@ default {
             if (running >= rand) {
               received_item = llList2String(droppables, i);
               string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                            + "&action=c&is_crit_fail=" + is_crit_fail + "&item=" + llEscapeURL(received_item)
+                            + "&action=c"
+                            + "&item=" + llEscapeURL(received_item)
                             + "&source=" + llEscapeURL(machine_name)
                             + "&min_level=" + (string)min_level
                             + "&cooldown=" + (string)((integer)((1 + llFrand(2 * cooldown_seconds_variation_percent) - cooldown_seconds_variation_percent) * cooldown_seconds));
