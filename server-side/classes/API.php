@@ -4,7 +4,7 @@ namespace SLRPHUD;
 class API {
   public static $DB;
   public static $HASH_SEED;
-  PUBLIC STATIC $DB_DRIVER;
+  public static $DB_DRIVER;
 
   public static function Init($hash_seed, $host, $username, $password, $database) {
     self::$HASH_SEED = $hash_seed;
