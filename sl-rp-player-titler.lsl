@@ -101,6 +101,8 @@ default {
         } else if (message == "AFK Off") {
           is_afk = FALSE;
           setTitle();
+        } else if (message == "REFRESH") {
+          init();
         } else if (llSubStringIndex(message, "Voice Chan") == 0) {
           char_voice_chan = (integer)llGetSubString(message, 10, llStringLength(message) - 1);
           llSetObjectDesc((string)char_voice_chan);
