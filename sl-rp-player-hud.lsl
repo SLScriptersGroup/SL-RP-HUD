@@ -193,6 +193,10 @@ default {
         if (llStringLength(llList2String(fields, 13)) > 0) {
           llRegionSayTo((key)llList2String(fields, 13), meter_chan, "1");
         }
+        if (dialog_state == "saving_update") {
+          llRegionSayTo(owner, meter_chan, "REFRESH");
+          dialog_state = "";
+        }
         llRegionSayTo(owner, meter_chan, "1");
         llListen(meter_chan, "", NULL_KEY, "");
         if (dialog_state == "pay now") {
@@ -333,7 +337,7 @@ default {
           if (dialog_listener) {
             llListenRemove(dialog_listener);
           }
-          dialog_state = "";
+          dialog_state = "saving_update";
           string params = "uuid=" + (string)owner + "&hash=" + llSHA1String((string)owner + hash_seed);
 
           if (currency_banked < 0) {
