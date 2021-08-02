@@ -1,5 +1,4 @@
 #include "config.lsl"
-string default_texture = "";
 
 string allowed_region = ALLOWED_REGION;
 list creators = [CREATORS];
@@ -44,7 +43,6 @@ setTitle() {
   float alpha = 1;
   vector col = hover_color;
   if (is_current_version) {
-    llSetLinkTexture(4, default_texture, 1);
     hover_text = "\n" + CURRENCY_PREFIX + (string)currency_banked + CURRENCY_SUFFIX
                + "\nLevel: " + (string)level + " XP: " + (string)experience + "/" + (string)xp_needed
                + "\nHealth: " + (string)health + "/10"
