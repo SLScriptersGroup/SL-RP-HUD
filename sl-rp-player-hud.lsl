@@ -55,7 +55,6 @@ setTitle() {
   } else {
     hover_text = "NEW VERSION\n \nCheck Inventory\n \n" + update_msg;
     col = <1, 0, 0>;
-    llSetLinkTexture(4, TEXTURE_BLANK, 1);
     alpha = 1;
   }
   llSetText(hover_text, col, alpha);
