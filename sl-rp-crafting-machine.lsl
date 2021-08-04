@@ -133,10 +133,12 @@ default {
           llSetTimerEvent(0.1);
         }
       } else if (body != "SILENT") {
-        if (toucher == NULL_KEY) {
-          llSay(0, "Unexpected response: " + body);
-        } else {
-          llRegionSayTo(toucher, 0, "Unexpected response: " + body);
+        if (llSubStringIndex(body, "GIVE,") < 0) {
+          if (toucher == NULL_KEY) {
+            llSay(0, "Unexpected response: " + body);
+          } else {
+            llRegionSayTo(toucher, 0, "Unexpected response: " + body);
+          }
         }
         llSetTimerEvent(0.1);
       }
@@ -199,7 +201,8 @@ default {
           } else {
             llGiveInventory(toucher, produced_item);
             string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                          + "&action=c&is_crit_fail=No&item=" + produced_item + "&source=" + machine_name;
+                          + "&action=c&is_crit_fail=No&item=" + produced_item + "&source=" + machine_name
+                          + "&min_level=" + (string)min_level;
             http_request_id = llHTTPRequest(API_URL,
                                             [
                                               HTTP_METHOD, "POST",
