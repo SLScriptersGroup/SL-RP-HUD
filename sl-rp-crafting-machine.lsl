@@ -3,7 +3,7 @@ string machine_name = "__ENTER_NAME_FOR_LOGGING__";
 //Strided list of the format "_ITEM_NAME_", (integer)qty_required, 0
 list ingredients = [
 ];
-string produced_item = "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT_";
+string produced_item = "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT__";
 integer min_level = 1;
 string failure_message = "";
 
