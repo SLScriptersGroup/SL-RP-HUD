@@ -59,7 +59,7 @@ default {
       llSetText("", <1,1,1>, 1);
       init();
     } else {
-      llOwnerSay("You are not in " + allowed_region + ". This meter can only be used in " + allowed_region + ".");
+      llOwnerSay("You are not in " + allowed_region + ". This titler can only be used in " + allowed_region + ".");
       llRequestPermissions(owner, PERMISSION_ATTACH);
     }
   }
@@ -131,7 +131,7 @@ default {
   changed(integer change) {
     if (change & CHANGED_REGION) {
       if (llGetRegionName() != allowed_region) {
-        llOwnerSay("You are not in " + allowed_region + ". This meter can only be used in " + allowed_region + ".");
+        llOwnerSay("You are not in " + allowed_region + ". This titler can only be used in " + allowed_region + ".");
         llRequestPermissions(owner, PERMISSION_ATTACH);
       }
     }
