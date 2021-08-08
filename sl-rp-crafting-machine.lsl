@@ -125,7 +125,7 @@ default {
             llSetTimerEvent(60);
             llTextBox(toucher, "\nYou can make " + (string)num_to_make + " " + produced_item + "\n \nHow many would you like to make?", dialog_chan);
           } else {
-            llRegionSayTo(toucher, 0, "There are not enough items in the case to make one " + produced_item + ".");
+            llRegionSayTo(toucher, 0, "There are not enough items in the case to make one " + produced_item + ". \n \nAdd the ingredients to the case and then touch the console to begin production.\n \n(( Please add items by editing and opening the Content tab of this object. [Do not Ctrl+Drag-and-Drop.] Items will not be returned. ))");
             llSetTimerEvent(0.1);
           }
         } else {
