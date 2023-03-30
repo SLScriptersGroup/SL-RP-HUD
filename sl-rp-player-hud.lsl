@@ -1,5 +1,4 @@
 #include "config.lsl"
-string default_texture = "";
 
 string allowed_region = ALLOWED_REGION;
 list creators = [CREATORS];
@@ -44,7 +43,6 @@ setTitle() {
   float alpha = 1;
   vector col = hover_color;
   if (is_current_version) {
-    llSetLinkTexture(4, default_texture, 1);
     hover_text = "\n" + CURRENCY_PREFIX + (string)currency_banked + CURRENCY_SUFFIX
                + "\nLevel: " + (string)level + " XP: " + (string)experience + "/" + (string)xp_needed
                + "\nHealth: " + (string)health + "/10"
@@ -57,7 +55,6 @@ setTitle() {
   } else {
     hover_text = "NEW VERSION\n \nCheck Inventory\n \n" + update_msg;
     col = <1, 0, 0>;
-    llSetLinkTexture(4, TEXTURE_BLANK, 1);
     alpha = 1;
   }
   llSetText(hover_text, col, alpha);
@@ -195,6 +192,10 @@ default {
         setTitle();
         if (llStringLength(llList2String(fields, 13)) > 0) {
           llRegionSayTo((key)llList2String(fields, 13), meter_chan, "1");
+        }
+        if (dialog_state == "saving_update") {
+          llRegionSayTo(owner, meter_chan, "REFRESH");
+          dialog_state = "";
         }
         llRegionSayTo(owner, meter_chan, "1");
         llListen(meter_chan, "", NULL_KEY, "");
@@ -336,7 +337,7 @@ default {
           if (dialog_listener) {
             llListenRemove(dialog_listener);
           }
-          dialog_state = "";
+          dialog_state = "saving_update";
           string params = "uuid=" + (string)owner + "&hash=" + llSHA1String((string)owner + hash_seed);
 
           if (currency_banked < 0) {

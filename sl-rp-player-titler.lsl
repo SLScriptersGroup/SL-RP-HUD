@@ -59,7 +59,7 @@ default {
       llSetText("", <1,1,1>, 1);
       init();
     } else {
-      llOwnerSay("You are not in " + allowed_region + ". This meter can only be used in " + allowed_region + ".");
+      llOwnerSay("You are not in " + allowed_region + ". This titler can only be used in " + allowed_region + ".");
       llRequestPermissions(owner, PERMISSION_ATTACH);
     }
   }
@@ -101,6 +101,8 @@ default {
         } else if (message == "AFK Off") {
           is_afk = FALSE;
           setTitle();
+        } else if (message == "REFRESH") {
+          init();
         } else if (llSubStringIndex(message, "Voice Chan") == 0) {
           char_voice_chan = (integer)llGetSubString(message, 10, llStringLength(message) - 1);
           llSetObjectDesc((string)char_voice_chan);
@@ -129,7 +131,7 @@ default {
   changed(integer change) {
     if (change & CHANGED_REGION) {
       if (llGetRegionName() != allowed_region) {
-        llOwnerSay("You are not in " + allowed_region + ". This meter can only be used in " + allowed_region + ".");
+        llOwnerSay("You are not in " + allowed_region + ". This titler can only be used in " + allowed_region + ".");
         llRequestPermissions(owner, PERMISSION_ATTACH);
       }
     }

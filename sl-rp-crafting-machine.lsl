@@ -3,7 +3,7 @@ string machine_name = "__ENTER_NAME_FOR_LOGGING__";
 //Strided list of the format "_ITEM_NAME_", (integer)qty_required, 0
 list ingredients = [
 ];
-string produced_item = "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT_";
+string produced_item = "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT__";
 integer min_level = 1;
 string failure_message = "";
 
@@ -125,7 +125,7 @@ default {
             llSetTimerEvent(60);
             llTextBox(toucher, "\nYou can make " + (string)num_to_make + " " + produced_item + "\n \nHow many would you like to make?", dialog_chan);
           } else {
-            llRegionSayTo(toucher, 0, "There are not enough items in the case to make one " + produced_item + ".");
+            llRegionSayTo(toucher, 0, "There are not enough items in the case to make one " + produced_item + ". \n \nAdd the ingredients to the case and then touch the console to begin production.\n \n(( Please add items by editing and opening the Content tab of this object. [Do not Ctrl+Drag-and-Drop.] Items will not be returned. ))");
             llSetTimerEvent(0.1);
           }
         } else {
@@ -133,10 +133,12 @@ default {
           llSetTimerEvent(0.1);
         }
       } else if (body != "SILENT") {
-        if (toucher == NULL_KEY) {
-          llSay(0, "Unexpected response: " + body);
-        } else {
-          llRegionSayTo(toucher, 0, "Unexpected response: " + body);
+        if (llSubStringIndex(body, "GIVE,") < 0) {
+          if (toucher == NULL_KEY) {
+            llSay(0, "Unexpected response: " + body);
+          } else {
+            llRegionSayTo(toucher, 0, "Unexpected response: " + body);
+          }
         }
         llSetTimerEvent(0.1);
       }
@@ -199,7 +201,8 @@ default {
           } else {
             llGiveInventory(toucher, produced_item);
             string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                          + "&action=c&is_crit_fail=No&item=" + produced_item + "&source=" + machine_name;
+                          + "&action=c&is_crit_fail=No&item=" + produced_item + "&source=" + machine_name
+                          + "&min_level=" + (string)min_level;
             http_request_id = llHTTPRequest(API_URL,
                                             [
                                               HTTP_METHOD, "POST",

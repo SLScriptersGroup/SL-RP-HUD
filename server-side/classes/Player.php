@@ -3,8 +3,8 @@ namespace SLRPHUD;
 
 class Player {
   const MAX_HEALTH = 10;
-  const MAX_ATTACK = 5;
-  const MAX_DEFENSE = 5;
+  const MAX_ATTACK = 10;
+  const MAX_DEFENSE = 10;
   const DROPS_PER_24_HOURS = 8;
   const FIGHT_WINNER_EXPERIENCE = 2;
   const FIGHT_LOSER_EXPERIENCE = 1;
@@ -61,7 +61,7 @@ class Player {
       }
       if (isset($update_fields['health']) && strlen($update_fields['health']) > 0) {
         $updates['health'] = $update_fields['health'];
-        $this->_setter('health', $this->_health + $update_fields['health']);
+        $this->_setter('health', $update_fields['health']);
       }
       if (   isset($update_fields['currency_banked'])
           && (int)$update_fields['currency_banked'] < 0
@@ -106,8 +106,8 @@ class Player {
       }
       foreach (self::INTEGER_CHARACTERISTICS as $field) {
         if (isset($update_fields[$field])) {
-          $this->_setter($field, $this->{'_' . $field} + (int)$update_fields[$field]);
-          $updates[$field] = (INT)$update_fields[$field];
+          $this->_setter($field, (int)$update_fields[$field]);
+          $updates[$field] = (int)$update_fields[$field];
         }
       }
       $sql = "UPDATE player SET name_character=?,title=?,currency_banked=?,currency_bonus=?,experience=?,health=?,attack=?,defense=?,boost_attack=?,boost_defense=?,instant_last_defense=?,instant_created=?,instant_last_stat_auto_update=?,hover_color=?,lvl=?,day_last_worked=?,total_days_worked=? WHERE player_id=?";
@@ -146,7 +146,7 @@ class Player {
       $updates['boost_attack'] = (isset($updates['boost_attack'])?$updates['boost_attack']:0);
       $updates['boost_defense'] = (isset($updates['boost_defense'])?$updates['boost_defense']:0);
       $stmt->bind_param("isiiiiiii", $this->_player_id,
-                                     $update_fields['source'],
+                                     $updates['source'],
                                      $updates['currency_banked'],
                                      $updates['experience'],
                                      $updates['health'],
@@ -180,8 +180,8 @@ class Player {
           $stmt->execute();
           $stmt->close();
 
-          $this->_setter('currency_banked', $this->_currency_banked + $this->_player_paid);
-          $this->_setter('experience', $this->_experience +  self::CHECK_IN_XP_BONUS);
+          $this->_setter('currency_banked', $this->_player_paid);
+          $this->_setter('experience', self::CHECK_IN_XP_BONUS);
           $level_info = $this->_experienceToLevel($this->_experience);
           $this->_setter('lvl', $level_info['level']);
 
@@ -320,39 +320,41 @@ class Player {
     } else if (isset($_POST['item'])) {
       $this->Read();
       if ($this->_lvl >= (int)$_POST['min_level']) {
-        $stmt = API::$DB->prepare("SELECT COUNT(*) AS qty
-                                     FROM player_to_item
-                                    WHERE player_id=?
-                                      AND instant_created > '" . date('Y-m-d H:i:s', strtotime('-24 hours')) . "'");
-        $stmt->bind_param("i", $this->_player_id);
-      $stmt->execute();
-      $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-          $player_to_item_count = $result->fetch_object();
-          if ($player_to_item_count->qty >= self::DROPS_PER_24_HOURS) {
-            throw new \Exception('(( 24 hour drop limit reached. Please try again later. ))');
+        if (!isset($_POST['is_crit_fail'])) { //Not Crafting machine
+          $stmt = API::$DB->prepare("SELECT COUNT(*) AS qty
+                                       FROM player_to_item
+                                      WHERE player_id=?
+                                        AND instant_created > '" . date('Y-m-d H:i:s', strtotime('-24 hours')) . "'");
+          $stmt->bind_param("i", $this->_player_id);
+          $stmt->execute();
+          $result = $stmt->get_result();
+          if ($result->num_rows > 0) {
+            $player_to_item_count = $result->fetch_object();
+            if ($player_to_item_count->qty >= self::DROPS_PER_24_HOURS) {
+              throw new \Exception('(( 24 hour drop limit reached. Please try again later. ))');
+            }
           }
-        }
-        $stmt->close();
+          $stmt->close();
 
-        $stmt = API::$DB->prepare("SELECT instant_cooldown_expires
-                                     FROM player_to_item
-                                    WHERE player_id=?
-                                      AND source=?
-                                  ORDER BY player_to_item_id DESC LIMIT 1");
-        $stmt->bind_param("is", $this->_player_id, $_POST['source']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-          $player_to_item_count = $result->fetch_object();
-        
-          if (   strlen($player_to_item_count->instant_cooldown_expires) > 0
-              && $player_to_item_count->instant_cooldown_expires > date('Y-m-d H:i:s')
-             ) {
-            throw new \Exception('(( This item is still on cooldown for you. Try again later. ))');
+          $stmt = API::$DB->prepare("SELECT instant_cooldown_expires
+                                       FROM player_to_item
+                                      WHERE player_id=?
+                                        AND source=?
+                                    ORDER BY player_to_item_id DESC LIMIT 1");
+          $stmt->bind_param("is", $this->_player_id, $_POST['source']);
+          $stmt->execute();
+          $result = $stmt->get_result();
+          if ($result->num_rows > 0) {
+            $player_to_item_count = $result->fetch_object();
+          
+            if (   strlen($player_to_item_count->instant_cooldown_expires) > 0
+                && $player_to_item_count->instant_cooldown_expires > date('Y-m-d H:i:s')
+               ) {
+              throw new \Exception('(( This item is still on cooldown for you. Try again later. ))');
+            }
           }
+          $stmt->close();
         }
-        $stmt->close();
 
         $cooldown = (isset($_POST['cooldown'])?"'" . date('Y-m-d H:i:s', strtotime('+' . abs((int)$_POST['cooldown']) . ' seconds')) . "'":'NULL');
 
@@ -365,7 +367,7 @@ class Player {
                                                item=?"
                  );
 
-        $is_crit = ($_POST['is_crit_fail'] == 'Yes'?'Yes':'No');
+        $is_crit = (isset($_POST['is_crit_fail']) && $_POST['is_crit_fail'] == 'Yes'?'Yes':'No');
         $stmt->bind_param("isss", $this->_player_id,
                                    $_POST['source'],
                                    $is_crit,
@@ -398,18 +400,19 @@ class Player {
         }
         $hover_color = preg_replace('/[<> ]/', '', $hover_color);
       }
-
+      $title = str_replace(',', '', $_POST['title']);
       $stmt->bind_param("sssss", $_POST['user'],
                                  $_POST['uuid'],
                                  $_POST['name'],
-                                 str_replace(',', '', $_POST['title']),
+                                 $title,
                                  $hover_color
                        );
       $stmt->execute();
+      $player_id = API::$DB->insert_id;
       $stmt->close();
 
       $stmt = API::$DB->prepare("INSERT INTO player_log SET player_id=?, instant=NOW(), source_name='User Created'");
-      $stmt->bind_param("i", API::$DB->insert_id);
+      $stmt->bind_param("i", $player_id);
       $stmt->execute();
       $stmt->close();
 
@@ -513,10 +516,13 @@ class Player {
     } else if (   $name == 'player_id'
                || $name == 'currency_banked'
                || $name == 'currency_bonus'
-               || $name == 'experience'
                || $name == 'total_days_worked'
              ) {
       $val = (int)$this->{'_' . $name} + (int)$val;
+    } else if ($name == 'experience') {
+      $val = (int)$this->{'_' . $name} + (int)$val;
+      $xp = $this->_experienceToLevel($val);
+      $this->_lvl = $xp['level'];
     } else if ($name == 'health') {
       $val = (int)$this->_health + (int)$val;
       if ($val > self::MAX_HEALTH) {

@@ -28,7 +28,7 @@ default {
         } else {
           list fields = llCSV2List(llGetSubString(body, 5, llStringLength(body) - 1));
           string paid = llList2String(fields, 16);
-          llRegionSayTo(toucher, 0, "You have checked in for the day and received M$" + paid);
+          llRegionSayTo(toucher, 0, "You have checked in for the day and received " + CURRENCY_PREFIX + paid + CURRENCY_SUFFIX);
           llRegionSayTo(toucher, meter_chan, "1");
         }
         toucher = NULL_KEY;
