@@ -24,12 +24,13 @@ global.query = util.promisify(db.query).bind(db);
 
 const app = express();
 
-app.get('/', function(req, res) {
+app.post('/', function(req, res) {
   try {
-    const response = API.Init(process.env.HASH_SEED, req);
+    API.HASH_SEED = process.env.HASH_SEED;
+    const response = API.Init(req);
     res.send(response);
   } catch (error) {
-    res.send(error);
+    res.send(error.message);
   }
   res.end();
 });
