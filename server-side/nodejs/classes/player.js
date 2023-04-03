@@ -9,13 +9,13 @@ class Player {
   static CHECK_IN_NUM_DAYS_FOR_BONUS = 5;
   static CHECK_IN_XP_BONUS = 1;
 
-  static INTEGER_CHARACTERISTICS = {'currency_banked':'currency_banked',
-                                    'experience':'experience',
-                                    'attack':'attack',
-                                    'defense':'defense',
-                                    'boost_attack':'boost_attack',
-                                    'boost_defense':'boost_defense'
-                                  };
+  static INTEGER_CHARACTERISTICS = ['currency_banked',
+                                    'experience',
+                                    'attack',
+                                    'defense',
+                                    'boost_attack',
+                                    'boost_defense'
+                                  ];
   #_player_id = 0;
   #_username_sl = '';
   #_uuid_sl = '';
@@ -41,8 +41,95 @@ class Player {
   
   constructor() {}
   
-  Update(update_fields = false) {
+  async Update(update_fields = false) {
     this.Read();
+    if (update_fields === false) {
+      update_fields = global.http.body;
+    }
+    try {
+      let updates = {};
+      if (typeof update_fields.name != 'undefined') {
+        this.name_character = update_fields.name;
+      }
+      if (typeof update_fields.title != 'undefined') {
+        this.title = update_fields.title;
+      }
+      if (typeof update_fields.hover_color != 'undefined' && update_fields.hover_color.length > 0) {
+        this.hover_color = update_fields.hover_color;
+      }
+      if (typeof update_fields.health != 'undefined' && update_fields.health.length > 0) {
+        updates.health = update_fields.health;
+        this.health = update_fields.health;
+      }
+      if (typeof update_fields.currency_banked != 'undefined'
+          && parseInt(update_fields.currency_banked) < 0
+          && typeof update_fields.pass != 'undefined'
+          && update_fields.pass.length > 0
+         ) {
+        if (parseInt(update_fields.currency_banked) <= this.#_currency_banked) {
+          let results = await global.query("UPDATE player SET currency_banked=currency_banked + ? WHERE uuid_sl=?", [Math.abs(update_fields.currency_banked), update_fields.pass]);
+          if (results.affectedRows <= 0) {
+            throw new Error('Payment cancelled. Recipient not in database.');
+          }
+
+          let other_player = await global.query("SELECT player_id FROM player WHERE uuid_sl=?", [update_fields.pass]);
+          if (other_player.length > 0) {
+            await global.query("INSERT INTO player_log SET player_id=?, instant=NOW(), source_name='Stat Change', currency_banked=?", [other_player[0].player_id, Math.abs(update_fields.currency_banked)]);
+          }
+        }
+      }
+      for (let x=0;x<Player.INTEGER_CHARACTERISTICS.length;x++) {
+        if (typeof update_fields[Player.INTEGER_CHARACTERISTICS[x]] != 'undefined') {
+          this[Player.INTEGER_CHARACTERISTICS[x]] = parseInt(update_fields[Player.INTEGER_CHARACTERISTICS[x]]);
+          updates[Player.INTEGER_CHARACTERISTICS[x]] = parseInt(update_fields[Player.INTEGER_CHARACTERISTICS[x]]);
+        }
+      }
+      await global.query("UPDATE player SET name_character=?,title=?,currency_banked=?,currency_bonus=?,experience=?,health=?,attack=?,defense=?,boost_attack=?,boost_defense=?,instant_last_defense=?,instant_created=?,instant_last_stat_auto_update=?,hover_color=?,lvl=?,day_last_worked=?,total_days_worked=? WHERE player_id=?",
+                         [this.#_name_character,
+                          this.#_title,
+                          this.#_currency_banked,
+                          this.#_currency_bonus,
+                          this.#_experience,
+                          this.#_health,
+                          this.#_attack,
+                          this.#_defense,
+                          this.#_boost_attack,
+                          this.#_boost_defense,
+                          this.#_instant_last_defense,
+                          this.#_instant_created,
+                          this.#_instant_last_stat_auto_update,
+                          this.#_hover_color,
+                          this.#_lvl,
+                          this.#_day_last_worked,
+                          this.#_total_days_worked,
+                          this.#_player_id
+                       ]
+      );
+
+      updates.source = (typeof updates.source != 'undefined'?updates.source:'Stat Change');
+      updates.currency_banked = (typeof updates.currency_banked != 'undefined'?updates.currency_banked:0);
+      updates.experience = (typeof updates.experience != 'undefined'?updates.experience:0);
+      updates.health = (typeof updates.health != 'undefined'?updates.health:0);
+      updates.attack = (typeof updates.attack != 'undefined'?updates.attack:0);
+      updates.defense = (typeof updates.defense != 'undefined'?updates.defense:0);
+      updates.boost_attack = (typeof updates.boost_attack != 'undefined'?updates.boost_attack:0);
+      updates.boost_defense = (typeof updates.boost_defense != 'undefined'?updates.boost_defense:0);
+
+      await global.query("INSERT INTO player_log (player_id, instant, source_name, currency_banked, experience, health, attack, defense, boost_attack, boost_defense) VALUES (?,NOW(),?,?,?,?,?,?,?,?)",
+                         [this.#_player_id,
+                          updates.source,
+                          updates.currency_banked,
+                          updates.experience,
+                          updates.health,
+                          updates.attack,
+                          updates.defense,
+                          updates.boost_attack,
+                          updates.boost_defense
+                        ]
+                        );
+    } catch (error) {
+      throw new Error(`Database error: ${error.message}`);
+    }
   }
   Work() {
     this.Read();
@@ -54,7 +141,26 @@ class Player {
 
   }
   Read() {
-    //global.http.body
+    try {
+      this.uuid_sl = global.http.body.uuid;
+      global.db.query("SELECT * FROM player WHERE uuid_sl=?", [this.uuid_sl], 
+        function (error, results, fields) {
+          if (error) {
+            throw new Error(error);
+          } else if (results.length == 0) {
+            throw new Error(`Player with UUID Key of ${this.uuid_sl} not found.`);
+          } else {
+            for (let i=0;i<results.length;i++) {
+              for (let k in results[i]) {
+                this[k] = results[i][k];
+              }
+            }
+          }
+        }
+      );
+    } catch (error) {
+      throw new Exception(`Database error: ${error.message}`);
+    }
   }
   _placeBattle($attacker, $defender) {
 
