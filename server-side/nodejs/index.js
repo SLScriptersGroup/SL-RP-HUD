@@ -26,6 +26,7 @@ const app = express();
 
 app.post('/', function(req, res) {
   try {
+    global.http = req;
     API.HASH_SEED = process.env.HASH_SEED;
     const response = API.Init(req);
     res.send(response);
