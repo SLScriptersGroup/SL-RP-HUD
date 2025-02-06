@@ -3,13 +3,14 @@ string machine_name = "__ENTER_NAME_FOR_LOGGING__";
 //Strided list of the format "_ITEM_NAME_", (integer)qty_required, 0
 list ingredients = [
 ];
-string produced_item = "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT__";
+string produced_item_type = "__ENTER SINGULAR NAME FOR THE COLLECTION OF ALL ITEMS BEING GIVEN. E.G. Fruit, item, gun__";
+list product_items = [
+  "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT_", 1 //Last number is the relative weight. See docs for details.
+];
 integer min_level = 1;
 string failure_message = "";
 
 integer success_rate = 95;
-integer crit_fail_rate = 10;
-integer crit_fail_rate_damping_by_level_above_min_level = 3;
 
 string allowed_region = ALLOWED_REGION;
 list creators = [CREATORS];
@@ -41,7 +42,7 @@ default {
     integer j;
     integer ing_qty = llGetListLength(ingredients);
     float required;
-    string output = "Hello. I am " + machine_name + ". I can produce the " + produced_item + ".\n \nEach " + produced_item + " requires the following ingredients:\n";
+    string output = "Hello. I am " + machine_name + ". I can produce " + produced_item_type + ".\n \nEach " + produced_item_type + " requires the following ingredients:\n";
     for (j=0;j<ing_qty;j+=3) {
       required = llList2Float(ingredients, j + 1);
       output += (string)((integer)required) + " × " + llList2String(ingredients, j) + "\n";
@@ -94,13 +95,17 @@ default {
           for (i=0;i<ing_qty;i+=3) {
             ingredients = llListReplaceList(ingredients, [0], i + 2, i + 2);
           }
+          integer idx;
           for (i=0;i<qty;i++) {
             name = llGetInventoryName(INVENTORY_OBJECT, i);
-            if (name != produced_item && llListFindList(creator_keys, [llGetInventoryCreator(name)]) > -1) {
-              for (j=0;j<ing_qty;j+=3) {
-                if (llSubStringIndex(name, llList2String(ingredients, j)) == 0) {
-                  ingredients = llListReplaceList(ingredients, [llList2Integer(ingredients, j + 2) + 1], j + 2, j + 2);
+            for (idx=0;idx<llGetListLength(ingredients);idx++) {
+              if (llSubStringIndex(name, llList2String(ingredients, idx)) > -1 && llListFindList(creator_keys, [llGetInventoryCreator(name)]) > -1) {
+                for (j=0;j<ing_qty;j+=3) {
+                  if (llSubStringIndex(name, llList2String(ingredients, j)) == 0) {
+                    ingredients = llListReplaceList(ingredients, [llList2Integer(ingredients, j + 2) + 1], j + 2, j + 2);
+                  }
                 }
+                idx = llGetListLength(ingredients);
               }
             }
           }
@@ -108,7 +113,7 @@ default {
           float required;
           float possess;
           integer can_make;
-          string output = "\nEach " + produced_item + " requires the following ingredients:\n";
+          string output = "\nEach " + produced_item_type + " requires the following ingredients:\n";
           for (j=0;j<ing_qty;j+=3) {
             required = llList2Float(ingredients, j + 1);
             possess = llList2Float(ingredients, j + 2);
@@ -123,9 +128,9 @@ default {
           if (num_to_make > 0) {
             dialog_listener = llListen(dialog_chan, "", toucher, "");
             llSetTimerEvent(60);
-            llTextBox(toucher, "\nYou can make " + (string)num_to_make + " " + produced_item + "\n \nHow many would you like to make?", dialog_chan);
+            llTextBox(toucher, "\nYou can make " + (string)num_to_make + " " + produced_item_type + "s\n \nHow many would you like to make?", dialog_chan);
           } else {
-            llRegionSayTo(toucher, 0, "There are not enough items in the case to make one " + produced_item + ". \n \nAdd the ingredients to the case and then touch the console to begin production.\n \n(( Please add items by editing and opening the Content tab of this object. [Do not Ctrl+Drag-and-Drop.] Items will not be returned. ))");
+            llRegionSayTo(toucher, 0, "There are not enough items in the case to make one " + produced_item_type + ".");
             llSetTimerEvent(0.1);
           }
         } else {
@@ -140,7 +145,6 @@ default {
             llRegionSayTo(toucher, 0, "Unexpected response: " + body);
           }
         }
-        llSetTimerEvent(0.1);
       }
     }
   }
@@ -149,7 +153,7 @@ default {
       llSetTimerEvent(0);
       integer num = (integer)message;
       if (num > 0 && num <= max_qty) {
-        llRegionSayTo(toucher, 0, "Making " + (string)num + " " + produced_item + ". (It takes 2 seconds for each one to be created.)");
+        llRegionSayTo(toucher, 0, "Making " + (string)num + " " + produced_item_type + "s. (It takes 2 seconds for each one to be created.)");
         integer qty = llGetInventoryNumber(INVENTORY_OBJECT);
         integer i; integer j; integer k;
         integer ing_qty = llGetListLength(ingredients);
@@ -179,24 +183,26 @@ default {
         for (i=0;i<num;i++) {
           if (llRound(llFrand(100)) > success_rate) {
             //Did not succeed
-            integer c_fail_rate = crit_fail_rate - (level - min_level) * crit_fail_rate_damping_by_level_above_min_level;
-            if (c_fail_rate > 0) {
-              if (llRound(llFrand(100)) <= c_fail_rate) {
-                //Critical failure -- deliver bad product
-                llMessageLinked(LINK_ALL_OTHERS, 0, produced_item, toucher);
-              } else {
-                failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
-                llRegionSayTo(toucher, 0, failure_message);
-              }
-            } else {
-              failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
-              llRegionSayTo(toucher, 0, failure_message);
-            }
+            failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
+            llRegionSayTo(toucher, 0, failure_message);
           } else {
+            string produced_item = "";
+            integer idx; integer weighted_total = 0;
+            for (idx=1;idx<llGetListLength(product_items);idx+=2) {
+              weighted_total += llList2Integer(product_items, idx);
+            }
+            integer rando = llFloor(llFrand(weighted_total));
+            weighted_total = 0;
+            for (idx=1;idx<llGetListLength(product_items);idx+=2) {
+              weighted_total += llList2Integer(product_items, idx);
+              if (rando < weighted_total) {
+                produced_item = llList2String(product_items, idx - 1);
+                idx = llGetListLength(product_items);
+              }
+            }
             llGiveInventory(toucher, produced_item);
             string params = "uuid=" + (string)toucher + "&hash=" + llSHA1String((string)toucher + hash_seed)
-                          + "&action=c&is_crit_fail=No&item=" + produced_item + "&source=" + machine_name
-                          + "&min_level=" + (string)min_level;
+                          + "&action=c&is_crit_fail=No&item=" + produced_item + "&source=" + machine_name;
             http_request_id = llHTTPRequest(API_URL,
                                             [
                                               HTTP_METHOD, "POST",
@@ -206,7 +212,7 @@ default {
           }
         }
         toucher = NULL_KEY;
-        llRegionSayTo(toucher, 0, "Production of " + (string)num + " " + produced_item + " complete.");
+        llRegionSayTo(toucher, 0, "Production of " + (string)num + " " + produced_item_type + "s complete.");
         llSetTimerEvent(0.1);
         llResetTime();
       } else {

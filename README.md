@@ -138,6 +138,18 @@ The root object of the crafting machine must contain the [sl-rp-crafting-machine
 
 The linked object containing the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure) script object *must* be the same name as the `produced_item`.
 
+#### Random Produced Item
+The [sl-rp-random-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-random-crafting-machine) is used to generate a random item from a single set of ingredients. Items are chosen with a weighted frequency, so the product_items list is of the form `"item name", frequency` where the frequency can be a percentage *if all frequencies sum to 100* or a weight. For example, in this configuration there is a 1/3 chance of getting a thingy and a 2/3 chance of getting a widget:
+
+```
+list product_items = [
+  "thingy", 5,
+  "widget", 10
+];
+```
+
+This script does not employ the critical failure rate because that does not support multiple items.
+
 ## Daily Checkin
 
 Script: [sl-rp-daily-checkin](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-daily-checkin)
