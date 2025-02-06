@@ -37,14 +37,14 @@ Setup steps:
 
 ## The Admin HUD
 
-Script: [sl-rp-admin-hud-controller](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-admin-hud-controller)
+Script: [sl-rp-admin-hud-controller](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-admin-hud-controller.lsl)
 
 This script works by including in any object which attaches as a HUD. When the object is clicked, the menu will be displayed.
 
 ## The Player HUD & Titler
 ### Player HUD
 
-Script: [sl-rp-player-hud](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-player-hud)
+Script: [sl-rp-player-hud](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-player-hud.lsl)
 
 Stats are displayed as hover text on an object containing the script with a HUD attachment point.
 
@@ -52,7 +52,7 @@ Change `default_texture` to a UUID or the name of a texture in the inventory of 
 
 ### Player Titler
 
-Script: [sl-rp-player-titler](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-player-titler)
+Script: [sl-rp-player-titler](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-player-titler.lsl)
 
 Just put Player Titler an object and set the attachment point. The Player Titler has no configuration options.
 
@@ -72,7 +72,7 @@ Crafting items are items used by crafting machines _and_ created by someone in t
 
 ### Usable Items
 
-Script: [sl-rp-consumable-item](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-consumable-item)
+Script: [sl-rp-consumable-item](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-consumable-item.lsl)
 
 Experience, health, attack, defense, attack boost, defense boost, and currency can be affected (one or more at the same time) by a usable item. **Attack boost and defense boost are currently placeholders and are not functional.** Adjust the variable value in double quotes at the top of the file. Positive numbers increase stats, negative numbers decreate stats. Levels are increased automatically if experience is increased or decreased.
 
@@ -82,7 +82,7 @@ When a usable item is clicked, it sends the stat changes to the HUD. The HUD sen
 
 ### Loot Drops
 
-Script: [sl-rp-loot-drop](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-loot-drop)
+Script: [sl-rp-loot-drop](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-loot-drop.lsl)
 
 You *must* configure each of these variables:
 * `machine_name` -- The name of the crafting machine logged in the database.
@@ -119,27 +119,27 @@ Cooldowns apply to each player. When a player receives a loot drop item, a time 
 
 Crafting machines have a recipe requiring one or more crafting or usable items, then delivers a different crafting or usable item, deleting the items used in the recipe.
 
-One of two objects are delivered. Each crafting machine must be made of 2 prims: (1) The root prim containing the good object and the [sl-rp-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine) script and (2) a linked prim containing a critical failure object and the script [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure).
+One of two objects are delivered. Each crafting machine must be made of 2 prims: (1) The root prim containing the good object and the [sl-rp-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine.lsl) script and (2) a linked prim containing a critical failure object and the script [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure.lsl).
 
 #### The Crafting Machine
 
-The root object of the crafting machine must contain the [sl-rp-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine) script with these variables configured:
+The root object of the crafting machine must contain the [sl-rp-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine.lsl) script with these variables configured:
 
-* `machine_name` -- The name of the crafting machine used in both the root object and the linked object containing [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure).
+* `machine_name` -- The name of the crafting machine used in both the root object and the linked object containing [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure.lsl).
 * `ingredients` -- Strided list of the format `"_ITEM_NAME_", (integer)qty_required, 0` (The last 0 is used as a placeholder when counting players' dropped items.)
-* `produced_item` -- The name of the inventory object (Content tab) given when all required recipe items added to the Content tab in both the root object and the linked object with the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure) script.
+* `produced_item` -- The name of the inventory object (Content tab) given when all required recipe items added to the Content tab in both the root object and the linked object with the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure.lsl) script.
 * `min_level` -- The minimum required player level to use this crafting machine.
 * `failure_message`
 * `success_rate` -- The percentage (an integer between 0 and 100) likelihood of the `produced_item` in the root object being given. If `success_rate` does not result in the `produced_item` in the root object being given, all required recipe items added to the Content tab are deleted and the `failure_message` message is sent to the player.
-* `crit_fail_rate` -- The percentage (an integer between 0 and 100) of those who received the `failure_message` message who will receive the item in the linked object containing the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure) script.
+* `crit_fail_rate` -- The percentage (an integer between 0 and 100) of those who received the `failure_message` message who will receive the item in the linked object containing the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure.lsl) script.
 * `crit_fail_rate_damping_by_level_above_min_level` For each level above `min_level`, this number is subtracted from `crit_fail_rate` (never going below zero).
 
 #### The Critical Failure Linked Prim (Bad object)
 
-The linked object containing the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure) script object *must* be the same name as the `produced_item`.
+The linked object containing the [sl-rp-crafting-machine-crit-failure](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-crafting-machine-crit-failure.lsl) script object *must* be the same name as the `produced_item`.
 
 #### Random Produced Item
-The [sl-rp-random-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-random-crafting-machine) is used to generate a random item from a single set of ingredients. Items are chosen with a weighted frequency, so the product_items list is of the form `"item name", frequency` where the frequency can be a percentage *if all frequencies sum to 100* or a weight. For example, in this configuration there is a 1/3 chance of getting a thingy and a 2/3 chance of getting a widget:
+The [sl-rp-random-crafting-machine](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-random-crafting-machine.lsl) is used to generate a random item from a single set of ingredients. Items are chosen with a weighted frequency, so the product_items list is of the form `"item name", frequency` where the frequency can be a percentage *if all frequencies sum to 100* or a weight. For example, in this configuration there is a 1/3 chance of getting a thingy and a 2/3 chance of getting a widget:
 
 ```
 list product_items = [
@@ -152,7 +152,7 @@ This script does not employ the critical failure rate because that does not supp
 
 ## Daily Checkin
 
-Script: [sl-rp-daily-checkin](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-daily-checkin)
+Script: [sl-rp-daily-checkin](https://github.com/SLScriptersGroup/SL-RP-HUD/blob/master/sl-rp-daily-checkin.lsl)
 
 `machine_name` is used for logging.
 
