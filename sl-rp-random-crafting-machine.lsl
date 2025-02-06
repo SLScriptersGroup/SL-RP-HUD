@@ -4,9 +4,8 @@ string machine_name = "__ENTER_NAME_FOR_LOGGING__";
 list ingredients = [
 ];
 string produced_item_type = "__ENTER SINGULAR NAME FOR THE COLLECTION OF ALL ITEMS BEING GIVEN. E.G. Fruit, item, gun__";
-list product_items = [
-  "__ENTER_NAME_OF_INVENTORY_OBJECT_TO_DELIVER_WHEN_ALL_INGREDIENTS_ARE_PRESENT_", 1 //Last number is the relative weight. See docs for details.
-];
+//Strided list of the format "_ITEM_NAME_", (integer)relative_weight (See notes)
+list product_items = [];
 integer min_level = 1;
 string failure_message = "";
 
