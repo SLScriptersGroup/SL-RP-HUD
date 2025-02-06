@@ -185,17 +185,11 @@ default {
                 //Critical failure -- deliver bad product
                 llMessageLinked(LINK_ALL_OTHERS, 0, produced_item, toucher);
               } else {
-                integer index;
-                while ((index = llSubStringIndex(failure_message, "ITEM_NAME")) > -1) {
-                  failure_message = llGetSubString(failure_message, 0, index - 1) + produced_item + llGetSubString(failure_message, index + 9, llStringLength(failure_message) - 1);
-                }
+                failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
                 llRegionSayTo(toucher, 0, failure_message);
               }
             } else {
-              integer index;
-              while ((index = llSubStringIndex(failure_message, "ITEM_NAME")) > -1) {
-                failure_message = llGetSubString(failure_message, 0, index - 1) + produced_item + llGetSubString(failure_message, index + 9, llStringLength(failure_message) - 1);
-              }
+              failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
               llRegionSayTo(toucher, 0, failure_message);
             }
           } else {
