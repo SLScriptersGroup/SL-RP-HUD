@@ -331,7 +331,7 @@ class Player {
           $result = $stmt->get_result();
           if ($result->num_rows > 0) {
             $player_to_item_count = $result->fetch_object();
-            if ($player_to_item_count->qty >= self::DROPS_PER_24_HOURS) {
+            if (self::DROPS_PER_24_HOURS > 0 && $player_to_item_count->qty >= self::DROPS_PER_24_HOURS) {
               throw new \Exception('(( 24 hour drop limit reached. Please try again later. ))');
             }
           }
