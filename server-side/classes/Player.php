@@ -324,6 +324,7 @@ class Player {
           $stmt = API::$DB->prepare("SELECT COUNT(*) AS qty
                                        FROM player_to_item
                                       WHERE player_id=?
+                                        AND instant_cooldown_expires IS NOT NULL
                                         AND instant_created > '" . date('Y-m-d H:i:s', strtotime('-24 hours')) . "'");
           $stmt->bind_param("i", $this->_player_id);
           $stmt->execute();
