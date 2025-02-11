@@ -185,11 +185,11 @@ default {
                 //Critical failure -- deliver bad product
                 llMessageLinked(LINK_ALL_OTHERS, 0, produced_item, toucher);
               } else {
-                failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
+                failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item, 0);
                 llRegionSayTo(toucher, 0, failure_message);
               }
             } else {
-              failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item_type, 0);
+              failure_message = llReplaceSubString(failure_message, "ITEM_NAME", produced_item, 0);
               llRegionSayTo(toucher, 0, failure_message);
             }
           } else {
