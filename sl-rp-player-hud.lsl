@@ -386,7 +386,11 @@ default {
           list changes = llParseStringKeepNulls(message, [","], []);
           string action = llList2String(changes, 0);
           if (action == "STAT") {
-
+            //If stat changed triggered by object, don't try to subtract from the object's non-existent funds.
+            string pass = (string)id;
+            if (llGetUsername(id) == "") {
+              pass = "";
+            }
             string params = "uuid=" + (string)owner + "&hash=" + llSHA1String((string)owner + hash_seed)
                           + "&action=u"
                           + "&experience=" + llList2String(changes, 1)
